@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                 String         @id @default(cuid())
+  name               String
+  productDescription String
+  icp                String
+  pricing            String
+  caseStudy          String
+  calendarLink       String
+  baseDealSize       Int            @default(12000)
+  createdAt          DateTime       @default(now())
+  leads              Lead[]
+}
+
+model Lead {
+  id                String         @id @default(cuid())
+  companyId         String
+  name              String?
+  prospectCompany   String?
+  title             String?
+  email             String?
+  phone             String?
+  website           String?
+  leadScore         Int            @default(0)
+  priority          String         @default("Cold")
+  status            String         @default("new")
+  estimatedValue    Int            @default(0)
+  qualificationJson Json?
+  strategyJson      Json?
+  followupEmail     String?
+  crmNote           String?
+  createdAt         DateTime       @default(now())
+  company           Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  conversations     Conversation[]
+  agentRuns         AgentRun[]
+  followups         Followup[]
+}
+
+model Conversation {
+  id             String   @id @default(cuid())
+  leadId         String?
+  transcript     String
+  transcriptJson Json?
+  summary        String?
+  audioUrl       String?
+  createdAt      DateTime @default(now())
+  lead           Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
+
+model AgentRun {
+  id        String   @id @default(cuid())
+  leadId    String?
+  agentName String
+  inputJson Json?
+  outputJson Json?
+  status    String   @default("completed")
+  latencyMs Int      @default(0)
+  createdAt DateTime @default(now())
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
+
+model Followup {
+  id            String   @id @default(cuid())
+  leadId        String
+  subject       String
+  emailBody     String
+  crmNote       String
+  meetingAgenda Json?
+  slackAlert    String?
+  approved      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  lead          Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}

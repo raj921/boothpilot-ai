@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: boothpilot
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: boothpilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - boothpilot_pg:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://boothpilot:password@postgres:5432/boothpilot
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      SPEECHMATICS_API_KEY: ${SPEECHMATICS_API_KEY:-}
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+
+volumes:
+  boothpilot_pg:
